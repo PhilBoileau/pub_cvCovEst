@@ -2,9 +2,6 @@
 # Job name:
 #SBATCH --job-name=prep-allen
 #
-# Working directory:
-#SBATCH --workdir=/global/home/users/philippe_boileau/
-#
 # Account:
 #SBATCH --account=co_biostat
 #
@@ -36,7 +33,7 @@
 export R_LIBS_USER='/global/scratch/users/philippe_boileau/R'  # personal package library
 
 module load openblas/0.2.20 r/3.6.3 r-packages/default
-cd ~/projects/cv-cov-est-selector/analysis/allen-example/
+cd ~/projects/pub_cvCovEst/analysis/allen-example/
   
 R CMD BATCH --no-save --no-restore \
   R/01_process-data.R logs/01_process-data.Rout

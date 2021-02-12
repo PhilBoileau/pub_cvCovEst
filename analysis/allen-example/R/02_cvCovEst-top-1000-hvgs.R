@@ -18,7 +18,7 @@ omp_set_num_threads(1)
 # load the data ################################################################
 
 processed_data_ls <- readRDS(
-  file = here("analysis", "allen-example", "results", "preprocess_data.rds")
+  file = here("allen-example", "results", "preprocess_data.rds")
 )
 sce_allen <- processed_data_ls[[1]]
 top_hvgs <- processed_data_ls[[2]]
@@ -50,6 +50,5 @@ cv_cov_results <- cvCovEst(
 
 # save the results
 saveRDS(cv_cov_results,
-        file = here("analysis", "allen-example",
-                    "results", "p1000_cv_cov_est_results.rds")
+        file = here("allen-example", "results", "p1000_cv_cov_est_results.rds")
 )

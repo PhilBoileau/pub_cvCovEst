@@ -27,7 +27,7 @@ combined_p <- ggarrange(
 ggsave(
   plot = combined_p,
   filename = "combined_plot.png",
-  path = here("analysis", "combined", "graphs"),
+  path = here("combined", "graphs"),
   dpi = 320,
   device = "png",
   width = 7,

@@ -49,4 +49,7 @@ cv_cov_results <- cvCovEst(
 )
 
 # save the results
-saveRDS(cv_cov_results, file = here("results", "p1000_cv_cov_est_results.rds"))
+saveRDS(
+  cv_cov_results,
+  file = here("results", "p1000_cv_cov_est_results.rds")
+)

@@ -26,7 +26,7 @@ BiocManager::install(c("BiocParallel", "scRNAseq", "scater", "orgMm.eg.db",
                        "scran"), lib = lib_loc)
 
 # install private GitHub package via local git repo
-remotes::install_local(here::here("..", "..", "..", "cvCovEst"), lib = lib_loc,
+remotes::install_local(here::here("..", "..", "cvCovEst"), lib = lib_loc,
                        force = TRUE)
 
 # update all packages
