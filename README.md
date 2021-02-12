@@ -1,9 +1,7 @@
-# Covariance Estimator CV-Selector
+# Simulation Study and Analysis Code for "Cross-Validated Loss-Based Covariance Matrix Estimator Selection in High Dimensions"
 
-Materials for an investigation in developing a cross-validated covariance
-estimator selector. The repository is organized as follows
+The repository is organized as follows
 
-- `manuscript`: paper describing the approach
 - `analysis`: materials for data analysis examples
 - `simulations`: materials for simulation studies
 
