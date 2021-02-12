@@ -25,10 +25,10 @@ library(ggpubr)
 
 
 # helper functions
-source(file = here("..", "utils", "plot_utils.R"))
+source(file = here("utils", "plot_utils.R"))
 
 # knitr options
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, messages = FALSE)
 ```
 
 
@@ -89,7 +89,7 @@ sce_zeisel <- logNormCounts(sce_zeisel)
 
 ## Variance Modelling
 
-Identify top 1000 most variable genes.
+Identify 1000 most variable genes.
 
 ```{r mod-var}
 dec_zeisel <- modelGeneVarWithSpikes(sce_zeisel, "ERCC")
@@ -134,12 +134,15 @@ cv_cov_results <- cvCovEst(
 )
 
 # save the results
-saveRDS(cv_cov_results, file = here("results", "p1000_cv_cov_est_results.rds"))
+saveRDS(
+  cv_cov_results,
+  file = here("zeisel-example", "results", "p1000_cv_cov_est_results.rds")
+)
 ```
 
 ```{r cvCovEst-pc-1000a}
 cv_cov_results <- readRDS(
-  file = here("results", "p1000_cv_cov_est_results.rds")
+  file = here("zeisel-example", "results", "p1000_cv_cov_est_results.rds")
 )
 
 # now perform PCA with cvCovEst estimate
@@ -176,6 +179,26 @@ combo_p
 
 saveRDS(
   combo_p,
-  file = here("..", "combined", "graphs", "zeisel_1000hvgs.rds")
+  file = here("combined", "graphs", "zeisel_1000hvgs.rds")
 )
 ```
+
+
+### Comparison of Covariance Matrix Estimates
+
+Finally, a summary of the `cvCovEst` procedure is provided, along with a
+comparison of `cvCovEst`'s covariance matrix estimate and that of the sample
+covariance matrix. 
+
+```{r cvCovEst-summary, fig.width = 12, fig.height = 8}
+plot(cv_cov_results, dat_orig = data_in)
+```
+
+```{r estimate-comp, fig.width = 10, fig.heigt = 5}
+plot(cv_cov_results, dat_orig = data_in, plot_type = "heatmap",
+     estimator = c("linearShrinkLWEst", "sampleCovEst"),
+     stat = c("min"), abs_v = TRUE)
+plot(cv_cov_results, dat_orig = data_in, plot_type = "eigen",
+     estimator = c("linearShrinkLWEst", "sampleCovEst"), k = 20)
+```
+

@@ -28,7 +28,7 @@ library(ggpubr)
 source(file = here("utils", "plot_utils.R"))
 
 # knitr options
-knitr::opts_chunk$set(echo = TRUE, warnings = FALSE, messages = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, messages = FALSE)
 ```
 We apply `cvCovEst` to the Allen et al. single-cell transcriptomics dataset
 contained in the `scRNAseq` Bioconductor package.
@@ -64,7 +64,7 @@ sce_allen <- logNormCounts(sce_allen)
 
 ## Variance Modelling
 
-Identify top 1000 most variable genes.
+Identify 1000 most variable genes.
 
 ```{r mod-var}
 dec_allen <- modelGeneVarWithSpikes(sce_allen, "ERCC",
@@ -123,8 +123,7 @@ cv_cov_results <- readRDS(
 # now perform PCA with cvCovEst estimate
 eig_decomp <- eigs_sym(cv_cov_results$estimate, k = 20)
 
-data_in <- t(logcounts(sce_allen)[which(rownames(sce_allen)
-                                         %in% top_hvgs), ])
+data_in <- t(logcounts(sce_allen)[which(rownames(sce_allen) %in% top_hvgs), ])
 cv_cov_est_pca <- data_in %*% eig_decomp$vectors
 reducedDim(sce_allen, "cvPCA") <- cv_cov_est_pca
 ```
@@ -157,3 +156,23 @@ saveRDS(
   file = here("combined", "graphs", "allen_1000hvgs.rds")
 )
 ```
+
+
+### Comparison of Covariance Matrix Estimates
+
+Finally, a summary of the `cvCovEst` procedure is provided, along with a
+comparison of `cvCovEst`'s covariance matrix estimate and that of the sample
+covariance matrix. 
+
+```{r cvCovEst-summary, fig.width = 10, fig.height = 8}
+plot(cv_cov_results, dat_orig = data_in)
+```
+
+```{r estimate-comp, fig.width = 10, fig.heigt = 5}
+plot(cv_cov_results, dat_orig = data_in, plot_type = "heatmap",
+     estimator = c("nlShrinkLWEst", "sampleCovEst"),
+     stat = c("min"), abs_v = TRUE)
+plot(cv_cov_results, dat_orig = data_in, plot_type = "eigen",
+     estimator = c("nlShrinkLWEst", "sampleCovEst"), k = 20)
+```
+
