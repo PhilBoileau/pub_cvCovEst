@@ -1,0 +1,25 @@
+{
+    "id": "79CF406D",
+    "path": "~/Documents/berkeley/spring2020/cv-cov-est-selector/simulations/R/04_summarize.R",
+    "project_path": "R/04_summarize.R",
+    "type": "r_source",
+    "hash": "3383954897",
+    "contents": "",
+    "dirty": false,
+    "created": 1603239508912.0,
+    "source_on_save": false,
+    "relative_order": 5,
+    "properties": {
+        "cursorPosition": "121,15",
+        "scrollLine": "102",
+        "docOutlineVisible": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1603239635,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1603239635405,
+    "read_only": false,
+    "read_only_alternatives": []
+}

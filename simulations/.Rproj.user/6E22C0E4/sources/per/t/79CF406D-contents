@@ -1,0 +1,134 @@
+library(here)
+library(tidyverse)
+library(RColorBrewer)
+library(latex2exp)
+source(file = here("R", "utils_plot.R"))
+
+################################################################################
+# Extract simulation study results
+################################################################################
+
+# load all of the results for each dgp, and concatenate dataframes
+dgp_fns <- paste0("dgp", seq_len(8))
+dgp_results <- lapply(
+  dgp_fns,
+  function(dgp) {
+    
+    # get all the simulation run files
+    sim_runs <- list.files(path = here("data", dgp))
+    sim_runs <- sim_runs[which(sim_runs != "old")]
+    
+    # extract the results, and include the dgp as a column
+    sim_results_ratio <- lapply(
+      sim_runs,
+      function(run) {
+        run_results <- read_rds(file = here("data", dgp, run))
+        run_results$oracle_tbl <- run_results$oracle_tbl %>%
+          mutate(
+            data_gen_pro = paste0("Model ", str_sub(dgp, start = -1))
+          )
+        
+        return(run_results$oracle_tbl)
+      }
+    ) %>% bind_rows
+    sim_results_norms <- lapply(
+      sim_runs,
+      function(run) {
+        run_results <- read_rds(file = here("data", dgp, run))
+        run_results$norms_tbl <- run_results$norms_tbl %>%
+          mutate(
+            data_gen_pro = paste0("Model ", str_sub(dgp, start = -1))
+          )
+        
+        return(run_results$norms_tbl)
+      }
+    ) %>% bind_rows
+    
+    # return the combined results
+    dgp_tbls = list(
+      oracle_tbl = sim_results_ratio,
+      norms_tbl = sim_results_norms
+    )
+    return(dgp_tbls)
+  }
+)
+
+dgp_ratio_tbl <- lapply(
+  seq_len(length(dgp_fns)),
+  function(dgp_idx) {
+    dgp_results[[dgp_idx]]$oracle_tbl
+  }
+) %>% bind_rows
+
+dgp_norms_tbl <- lapply(
+  seq_len(length(dgp_fns)),
+  function(dgp_idx) {
+    dgp_results[[dgp_idx]]$norms
+  }
+) %>% bind_rows
+
+
+################################################################################
+# Visualize simulation results
+################################################################################
+
+# cross-validated conditional risk difference ratio plot
+
+# Equation 18 -- mean risk difd ratio
+mean_cv_riskdiff_ratio_p <- dgp_ratio_tbl %>%
+  meanRiskDiffRatioPlot
+ggsave(
+  plot = mean_cv_riskdiff_ratio_p,
+  filename = "mean-cv-risk-diff-ratio.png",
+  path = here("graphs", "2020-10-20"),
+  device = "png",
+  units = "cm",
+  width = 15,
+  height = 15,
+  dpi = "print"
+)
+
+# Equation 19 -- risk diff ratio
+cv_riskdiff_ratio_p <- dgp_ratio_tbl %>%
+  riskDiffRatioPlot
+ggsave(
+  plot = cv_riskdiff_ratio_p,
+  filename = "cv-risk-diff-ratio.png",
+  path = here("graphs", "2020-10-20"),
+  device = "png",
+  units = "cm",
+  width = 15,
+  height = 15,
+  dpi = "print"
+)
+
+
+# Norm plots
+
+# Frobenius Norm
+frob_norm_p <- dgp_norms_tbl %>%
+  frobeniusNormPlot
+ggsave(
+  plot = frob_norm_p,
+  filename = "mean-frobenius-norm-comparison.png",
+  path = here("graphs", "2020-10-20"),
+  device = "png",
+  units = "cm",
+  width = 20,
+  height = 15,
+  dpi = "print"
+)
+
+# operator norm
+op_norm_p <- dgp_norms_tbl %>%
+  operatorNormPlot
+ggsave(
+  plot = op_norm_p,
+  filename = "mean-operator-norm-comparison.png",
+  path = here("graphs", "2020-10-20"),
+  device = "png",
+  units = "cm",
+  width = 20,
+  height = 15,
+  dpi = "print"
+)

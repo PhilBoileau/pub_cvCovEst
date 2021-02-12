@@ -1,0 +1,159 @@
+---
+title: "Allen et al. scRNA-seq Example"
+author: "Philippe Boileau"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+# libraries
+library(here)
+library(dplyr)
+library(stringr)
+library(scRNAseq)
+library(scater)
+library(scran)
+library(future)
+library(future.apply)
+library(cvCovEst)
+library(RSpectra)
+library(BiocSingular)
+library(cluster)
+library(ggpubr)
+
+
+# helper functions
+source(file = here("utils", "plot_utils.R"))
+
+# knitr options
+knitr::opts_chunk$set(echo = TRUE, warnings = FALSE, messages = FALSE)
+```
+We apply `cvCovEst` to the Allen et al. single-cell transcriptomics dataset
+contained in the `scRNAseq` Bioconductor package.
+
+# Data Preparation
+
+## Load Data
+
+```{r load-data, results='hide', cache=TRUE, message=FALSE}
+# load the dataset
+sce_allen <- ReprocessedAllenData()
+
+# filter out the cells that did not pass the quality checks
+sce_allen <- sce_allen[, (sce_allen$passes_qc_checks_s == "Y" &
+                          !is.na(sce_allen$Core.Type))]
+sce_allen <- sce_allen[, sce_allen$Core.Type != "Intermediate"]
+
+# create a cell type variable
+sce_allen$cell_type <- word(sce_allen$Primary.Type, 1, sep = " ")
+sce_allen$cell_type[which(sce_allen$cell_type %in% c("Pvalb", "Sst"))] <-
+  sce_allen$Primary.Type[which(sce_allen$cell_type %in% c("Pvalb", "Sst"))]
+```
+
+## Normalization
+
+```{r normalization}
+set.seed(412321)
+counts(sce_allen) <- assay(sce_allen, "rsem_counts")
+clusters <- quickCluster(sce_allen)
+sce_allen <- computeSumFactors(sce_allen, clusters = clusters)
+sce_allen <- logNormCounts(sce_allen)
+```
+
+## Variance Modelling
+
+Identify top 1000 most variable genes.
+
+```{r mod-var}
+dec_allen <- modelGeneVarWithSpikes(sce_allen, "ERCC",
+                                    assay.type = "rsem_counts")
+top_hvgs <- getTopHVGs(dec_allen, n = 1000)
+```
+
+```{r cleanup, echo=FALSE}
+rm(dec_allen, clusters)
+```
+
+# Apply `cvCovEst`
+
+We now apply the `cvCovEst` function to the matrix of log-normalized cells to
+estimate its covariance matrix. Note that we center and scale the data as to
+estimate the sample correlation matrix.
+
+```{r cvCovEst-corr-mat-1000, eval=FALSE}
+# format data
+data_in <- t(logcounts(sce_allen)[which(rownames(sce_allen) %in% top_hvgs), ])
+
+# run cvCovEst
+set.seed(5234523)
+plan(multiprocess, workers = 2L)
+cv_cov_results <- cvCovEst(
+  dat = data_in,
+  estimators = c(linearShrinkLWEst, thresholdingEst, sampleCovEst,
+                 scadEst, poetEst, adaptiveLassoEst, nlShrinkLWEst),
+  estimator_params = list(
+    thresholdingEst = list(gamma = seq(0.05, 0.3, by = 0.05)),
+    scadEst = list(lambda = seq(0.05, 0.5, by = 0.05)),
+    poetEst = list(k = seq(5L, 10L), lambda = seq(0.05, 0.3, by = 0.05)),
+    adaptiveLassoEst = list(lambda = seq(0.1, 0.5, by = 0.1),
+                            n = seq(0.1, 0.5, by = 0.1))
+  ),
+  cv_loss = cvMatrixFrobeniusLoss,
+  cv_scheme = "v_fold",
+  v_folds = 5L,
+  center = TRUE,
+  scale = TRUE,
+  parallel = TRUE
+)
+
+# save the results
+saveRDS(
+  cv_cov_results,
+  file = here("allen-example", "results", "p1000_cv_cov_est_results.rds")
+)
+```
+
+```{r cvCovEst-pca-1000}
+cv_cov_results <- readRDS(
+  file = here("allen-example", "results", "p1000_cv_cov_est_results.rds")
+)
+
+# now perform PCA with cvCovEst estimate
+eig_decomp <- eigs_sym(cv_cov_results$estimate, k = 20)
+
+data_in <- t(logcounts(sce_allen)[which(rownames(sce_allen)
+                                         %in% top_hvgs), ])
+cv_cov_est_pca <- data_in %*% eig_decomp$vectors
+reducedDim(sce_allen, "cvPCA") <- cv_cov_est_pca
+```
+
+
+### Apply PCA
+
+```{r run-pca-1000}
+sce_allen <- runPCA(sce_allen, subset_row = top_hvgs, scale = TRUE)
+reducedDim(sce_allen, "PCA") <- reducedDim(sce_allen, "PCA")[, 1:20]
+```
+
+### Compare UMAP
+
+```{r umap-plots-1000, fig.width=10, fig.height=4}
+set.seed(12312)
+
+# regular PCA as initialization
+sce_allen <- runUMAP(sce_allen, dimred = "PCA")
+
+# cvPCA as initialization
+sce_allen <- runUMAP(sce_allen, dimred = "cvPCA", name = "cvUMAP")
+
+# plot the comparison
+combo_p <- plot_reduced_dims(sce_allen, "cell_type", point_size = 1)
+combo_p
+
+saveRDS(
+  combo_p,
+  file = here("combined", "graphs", "allen_1000hvgs.rds")
+)
+```
