@@ -165,14 +165,33 @@ comparison of `cvCovEst`'s covariance matrix estimate and that of the sample
 covariance matrix. 
 
 ```{r cvCovEst-summary, fig.width = 10, fig.height = 8}
-plot(cv_cov_results, dat_orig = data_in)
+# plot and save the summary
+allen_cvcovest_summary <- plot(cv_cov_results, dat_orig = data_in)
+allen_cvcovest_summary
+
+saveRDS(
+  allen_cvcovest_summary,
+  file = here("combined", "graphs", "allen_cvcovest_summary.rds")
+)
 ```
 
 ```{r estimate-comp, fig.width = 10, fig.heigt = 5}
-plot(cv_cov_results, dat_orig = data_in, plot_type = "heatmap",
-     estimator = c("nlShrinkLWEst", "sampleCovEst"),
-     stat = c("min"), abs_v = TRUE)
-plot(cv_cov_results, dat_orig = data_in, plot_type = "eigen",
-     estimator = c("nlShrinkLWEst", "sampleCovEst"), k = 20)
-```
+# heatmap of correlation matrices
+plot(
+  cv_cov_results, dat_orig = data_in, plot_type = "heatmap",
+  estimator = c("nlShrinkLWEst", "sampleCovEst"), stat = c("min"), abs_v = TRUE
+)
 
+# comparison of leading eigenvalues
+allen_eig_comp <- plot(
+  cv_cov_results, dat_orig = data_in, plot_type = "eigen",
+  estimator = c("nlShrinkLWEst", "sampleCovEst"), k = 20
+) + theme(legend.position = "none")
+allen_eig_comp
+
+# save the eigenvalue plot
+saveRDS(
+  allen_eig_comp,
+  file = here("combined", "graphs", "allen_eig_comp.rds")
+)
+```

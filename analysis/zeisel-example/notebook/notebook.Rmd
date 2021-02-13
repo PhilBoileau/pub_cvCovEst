@@ -191,14 +191,35 @@ comparison of `cvCovEst`'s covariance matrix estimate and that of the sample
 covariance matrix. 
 
 ```{r cvCovEst-summary, fig.width = 12, fig.height = 8}
-plot(cv_cov_results, dat_orig = data_in)
+# plot and save the summary
+zeisel_cvcovest_summary <- plot(cv_cov_results, dat_orig = data_in)
+zeisel_cvcovest_summary
+
+saveRDS(
+  zeisel_cvcovest_summary,
+  file = here("combined", "graphs", "zeisel_cvcovest_summary.rds")
+)
 ```
 
 ```{r estimate-comp, fig.width = 10, fig.heigt = 5}
-plot(cv_cov_results, dat_orig = data_in, plot_type = "heatmap",
-     estimator = c("linearShrinkLWEst", "sampleCovEst"),
-     stat = c("min"), abs_v = TRUE)
-plot(cv_cov_results, dat_orig = data_in, plot_type = "eigen",
-     estimator = c("linearShrinkLWEst", "sampleCovEst"), k = 20)
+# heatmap of correlation matrices
+plot(
+  cv_cov_results, dat_orig = data_in, plot_type = "heatmap",
+  estimator = c("linearShrinkLWEst", "sampleCovEst"), stat = c("min"),
+  abs_v = TRUE
+)
+
+# coparison of leading eigenvalues
+zeisel_eig_comp <- plot(
+  cv_cov_results, dat_orig = data_in, plot_type = "eigen",
+  estimator = c("linearShrinkLWEst", "sampleCovEst"), k = 20
+) + theme(legend.position = "none")
+zeisel_eig_comp
+
+# save the eigenvalue plot
+saveRDS(
+  zeisel_eig_comp,
+  file = here("combined", "graphs", "zeisel_eig_comp.rds")
+)
 ```
 
