@@ -32,7 +32,7 @@ plan(multiprocess, workers = 5L)
 cv_cov_results <- cvCovEst(
   dat = data_in,
   estimators = c(linearShrinkLWEst, thresholdingEst, sampleCovEst,
-                 scadEst, poetEst, adaptiveLassoEst, nlShrinkLWEst),
+                 scadEst, poetEst, adaptiveLassoEst,denseLinearShrinkEst),
   estimator_params = list(
     thresholdingEst = list(gamma = seq(0.05, 0.3, by = 0.05)),
     scadEst = list(lambda = seq(0.05, 0.5, by = 0.05)),
