@@ -1,9 +1,8 @@
-# Simulation Study and Analysis Code for "Cross-Validated Loss-Based Covariance Matrix Estimator Selection in High Dimensions"
+## Code for "Cross-Validated Loss-Based Covariance Matrix Estimator Selection in High Dimensions"
 
-The repository is organized as follows
+This repository is organized as follows
 
-- `analysis`: materials for data analysis examples
-- `simulations`: materials for simulation studies
+- `simulations/`: materials for simulation study
+- `analysis/`: materials for data analysis examples
 
-For the software package implementing our CV-selector, see
-https://github.com/PhilBoileau/cvCovEst
+The accompanying R package, `cvCovEst`, is available on [CRAN](https://CRAN.R-project.org/package=cvCovEst) and at https://github.com/PhilBoileau/cvCovEst.
